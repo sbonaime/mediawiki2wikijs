@@ -1,0 +1,26 @@
+# MediaWiki to Wiki.js Migration Tool - Python Dependencies
+# Python 3.9+ required
+
+# HTTP client for API calls
+requests>=2.31.0
+
+# MediaWiki API wrapper (supports MW 1.13.5+)
+mwclient>=0.10.0
+
+# Wiki.js GraphQL client
+gql>=3.4.0
+
+# Pandoc wrapper for markdown conversion
+pypandoc>=1.11
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Testing dependencies
+pytest>=7.0.0
+responses>=0.23.0
+vcrpy>=4.3.0
+
+# Optional: Code quality tools (uncomment if needed)
+# ruff>=0.1.0
+# pylint>=3.0.0

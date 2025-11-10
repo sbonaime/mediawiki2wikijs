@@ -53,7 +53,7 @@ sudo apt-get install pandoc
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/bonaime/mediawiki2wikijs.git
+   git clone https://github.com/sbonaime/mediawiki2wikijs.git
    cd mediawiki2wikijs
    ```
 
@@ -226,7 +226,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For issues and questions:
 - 📖 Review the [Quickstart Guide](specs/001-mediawiki-wikijs-migration/quickstart.md)
 - 🔧 Check the [Troubleshooting section](specs/001-mediawiki-wikijs-migration/quickstart.md#troubleshooting)
-- 🐛 Create a [GitHub issue](https://github.com/bonaime/mediawiki2wikijs/issues) with error logs and `export_metadata.json`
+- 🐛 Create a [GitHub issue](https://github.com/sbonaime/mediawiki2wikijs/issues) with error logs and `export_metadata.json`
 
 ## 🙏 Acknowledgments
 

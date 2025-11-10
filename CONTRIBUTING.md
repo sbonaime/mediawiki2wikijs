@@ -67,17 +67,17 @@ from dataclasses import dataclass
 @dataclass
 class Example:
     """Class docstring.
-    
+
     Attributes:
         name: Description of name field
         value: Description of value field
     """
     name: str
     value: int
-    
+
     def process(self) -> bool:
         """Process the example.
-        
+
         Returns:
             True if processing succeeds, False otherwise
         """
@@ -87,20 +87,20 @@ class Example:
 
 def transform_content(content: str, options: Optional[dict] = None) -> str:
     """Transform content using specified options.
-    
+
     Args:
         content: Input content to transform
         options: Optional transformation settings
-        
+
     Returns:
         Transformed content
-        
+
     Raises:
         ValueError: If content is empty
     """
     if not content:
         raise ValueError("Content cannot be empty")
-    
+
     # Implementation
     return content
 ```
@@ -138,18 +138,18 @@ from src.lib.content_transformer import ContentTransformer
 def test_normalize_page_title_creates_url_safe_path():
     """Test that page titles are converted to URL-safe paths."""
     transformer = ContentTransformer()
-    
+
     result = transformer.normalize_page_title("Getting Started Guide")
-    
+
     assert result == "getting-started-guide"
 
 
 def test_normalize_page_title_handles_special_characters():
     """Test special character handling in page titles."""
     transformer = ContentTransformer()
-    
+
     result = transformer.normalize_page_title("User:Admin/Notes (2023)")
-    
+
     assert result == "user-admin-notes-2023"
 ```
 

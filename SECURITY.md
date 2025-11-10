@@ -14,7 +14,7 @@ We release patches for security vulnerabilities. Currently supported versions:
 If you discover a security vulnerability, please do the following:
 
 1. **Do NOT create a public GitHub issue**
-2. Email the maintainers at [your-email@example.com]
+2. Email the maintainers at [bonaime@ipgp.fr]
 3. Include the following information:
    - Description of the vulnerability
    - Steps to reproduce

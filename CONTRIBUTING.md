@@ -24,7 +24,7 @@ This tool migrates MediaWiki sites to Wiki.js, preserving content, structure, an
 
 1. **Fork and clone**:
    ```bash
-   git clone https://github.com/yourusername/mediawiki2wikijs.git
+   git clone https://github.com/bonaime/mediawiki2wikijs.git
    cd mediawiki2wikijs
    ```
 

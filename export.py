@@ -305,7 +305,7 @@ def main():
     )
 
     if not client.login():
-        logger.error("Failed to authenticate with MediaWiki")
+        logger.error("Failed to connect to MediaWiki")
         sys.exit(1)
 
     # Load or create checkpoint

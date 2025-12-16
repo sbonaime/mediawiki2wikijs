@@ -12,7 +12,7 @@ A comprehensive Python-based tool for migrating complete MediaWiki sites to Wiki
 - **Content Transformation**: Convert wikitext to markdown with automatic link and image reference updates
 - **Intelligent Import**: Create pages and upload images to Wiki.js via GraphQL API
 - **Resumable Operations**: Checkpoint every 10 pages for large wiki migrations
-- **Authentication Handling**: Automatic reconnection on timeout (5-minute threshold)
+- **Flexible Authentication**: Supports both public wikis (anonymous access) and private wikis (automatic reconnection on timeout)
 - **Dry-Run Mode**: Preview operations without making changes
 - **Link Depth Control**: Configurable BFS traversal for selective export
 - **Error Recovery**: Comprehensive logging with CSV error reports
@@ -68,10 +68,11 @@ sudo apt-get install pandoc
    pip install -r requirements.txt
    ```
 
-4. **Configure credentials**:
+4. **Configure settings**:
    ```bash
    cp .env.example .env
-   # Edit .env with your MediaWiki and Wiki.js credentials
+   # Edit .env with your MediaWiki URL and Wiki.js credentials
+   # Note: MediaWiki username/password are optional (leave empty for public wikis)
    ```
 
 ## Quick Start
@@ -100,6 +101,36 @@ This will:
 - Create all pages with markdown content
 - Upload all images
 - Update internal links
+
+## Configuration
+
+### Environment Variables
+
+Edit your `.env` file with these settings:
+
+```bash
+# MediaWiki Configuration
+MEDIAWIKI_URL=https://wiki.example.com
+
+# Optional: For private wikis that require authentication
+# Leave empty for public wikis
+MEDIAWIKI_USERNAME=YourUsername
+MEDIAWIKI_PASSWORD=YourPassword
+
+# Wiki.js Configuration (required)
+WIKIJS_URL=https://newwiki.example.com
+WIKIJS_API_KEY=your-api-key-here
+
+# Optional Settings
+EXPORT_DIR=./export_output
+CHECKPOINT_FREQUENCY=10
+MAX_LINK_DEPTH=-1
+LOG_LEVEL=INFO
+```
+
+**Public vs Private Wikis:**
+- **Public wikis**: Leave `MEDIAWIKI_USERNAME` and `MEDIAWIKI_PASSWORD` empty or remove them. The tool will connect anonymously.
+- **Private wikis**: Provide valid credentials. The tool will automatically handle authentication and reconnection on timeout.
 
 ## Usage Examples
 

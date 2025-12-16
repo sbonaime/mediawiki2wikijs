@@ -20,13 +20,13 @@ class MediaWikiClient:
     support for MediaWiki 1.13.5+.
     """
 
-    def __init__(self, url: str, username: str, password: str, timeout_seconds: int = 300):
+    def __init__(self, url: str, username: str = '', password: str = '', timeout_seconds: int = 300):
         """Initialize MediaWiki client.
 
         Args:
             url: MediaWiki site URL (e.g., "https://wiki.example.com")
-            username: Bot or admin username
-            password: User password
+            username: Bot or admin username (optional, for private wikis)
+            password: User password (optional, for private wikis)
             timeout_seconds: Authentication timeout threshold (default: 300 = 5 minutes)
         """
         self.url = url
@@ -35,6 +35,7 @@ class MediaWikiClient:
         self.auth_manager = MediaWikiAuthManager(timeout_seconds)
         self.site: Optional[mwclient.Site] = None
         self.logger = setup_logger(__name__)
+        self.is_authenticated = False
 
         # Parse URL to get host and path
         parsed = urlparse(url)
@@ -46,7 +47,7 @@ class MediaWikiClient:
         """Authenticate with MediaWiki API.
 
         Returns:
-            True if authentication succeeds, False otherwise
+            True if connection succeeds, False otherwise
         """
         try:
             self.logger.info(f"Connecting to MediaWiki at {self.url}")
@@ -58,18 +59,21 @@ class MediaWikiClient:
                 scheme=self.scheme
             )
 
-            # Login with credentials
-            self.logger.info(f"Logging in as user: {self.username}")
-            self.site.login(self.username, self.password)
-
-            # Store session and mark authenticated
-            self.auth_manager.store_session(self.site)
-            self.logger.info("Successfully authenticated with MediaWiki")
+            # Login with credentials if provided
+            if self.username and self.password:
+                self.logger.info(f"Logging in as user: {self.username}")
+                self.site.login(self.username, self.password)
+                self.auth_manager.store_session(self.site)
+                self.is_authenticated = True
+                self.logger.info("Successfully authenticated with MediaWiki")
+            else:
+                self.logger.info("Connecting anonymously (no credentials provided)")
+                self.is_authenticated = False
 
             return True
 
         except Exception as e:
-            self.logger.error(f"Authentication failed: {e}")
+            self.logger.error(f"Connection failed: {e}")
             self.auth_manager.clear_session()
             return False
 
@@ -79,13 +83,14 @@ class MediaWikiClient:
         Raises:
             RuntimeError: If reconnection fails
         """
-        if self.auth_manager.is_timed_out():
+        if self.is_authenticated and self.auth_manager.is_timed_out():
             self.logger.warning("Authentication timeout detected, reconnecting...")
             if not self.login():
                 raise RuntimeError("Failed to reconnect to MediaWiki")
 
-        # Update last request time
-        self.auth_manager.mark_request()
+        # Update last request time if authenticated
+        if self.is_authenticated:
+            self.auth_manager.mark_request()
 
     def list_all_pages(self, namespaces: Optional[List[int]] = None, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """Retrieve list of all pages from specified namespaces.

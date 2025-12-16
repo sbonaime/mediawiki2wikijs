@@ -29,8 +29,8 @@ class Config:
 
         # MediaWiki configuration
         self.mediawiki_url = self._get_required('MEDIAWIKI_URL')
-        self.mediawiki_username = self._get_required('MEDIAWIKI_USERNAME')
-        self.mediawiki_password = self._get_required('MEDIAWIKI_PASSWORD')
+        self.mediawiki_username = self._get_optional('MEDIAWIKI_USERNAME', '')
+        self.mediawiki_password = self._get_optional('MEDIAWIKI_PASSWORD', '')
 
         # Wiki.js configuration
         self.wikijs_url = self._get_required('WIKIJS_URL')

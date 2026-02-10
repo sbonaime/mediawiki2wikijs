@@ -9,6 +9,7 @@ import argparse
 import sys
 from pathlib import Path
 from typing import List, Optional
+from datetime import datetime
 
 from src.lib.config import load_config
 from src.lib.logger import setup_logger, CSVErrorLogger
@@ -293,7 +294,7 @@ def main():
 
     # Initialize components
     storage = StorageManager(config.export_dir)
-    error_logger = CSVErrorLogger(config.export_dir / 'errors.csv')
+    error_logger = CSVErrorLogger(config.export_dir_path / 'errors.csv')
     image_processor = ImageProcessor(error_logger)
 
     # Initialize MediaWiki client
@@ -301,7 +302,8 @@ def main():
     client = MediaWikiClient(
         url=config.mediawiki_url,
         username=config.mediawiki_username,
-        password=config.mediawiki_password
+        password=config.mediawiki_password,
+        verify_ssl=config.verify_ssl
     )
 
     if not client.login():
@@ -316,9 +318,9 @@ def main():
             logger.info(f"Resuming from checkpoint: {checkpoint.pages_processed} pages processed")
         else:
             logger.warning("No checkpoint found, starting fresh export")
-            checkpoint = Checkpoint.create_new()
+            checkpoint = Checkpoint.create_new('export', config.to_dict())
     else:
-        checkpoint = Checkpoint.create_new()
+        checkpoint = Checkpoint.create_new('export', config.to_dict())
 
     # Get pages to export
     pages = get_pages_to_export(client, args, logger)
@@ -341,7 +343,12 @@ def main():
         logger.info(f"Limited to {args.limit} pages")
 
     # Initialize migration report
-    report = MigrationReport.create()
+    report = MigrationReport(
+        operation='export',
+        start_time=datetime.now(),
+        status='in_progress',
+        pages_total=len(pages)
+    )
 
     # Export each page
     logger.info(f"Exporting {len(pages)} pages...")
@@ -367,11 +374,11 @@ def main():
             )
 
             if page:
-                report.pages_exported_success += 1
+                report.pages_succeeded += 1
                 checkpoint.mark_page_processed(page.id, page.title)
             else:
-                report.pages_exported_failed += 1
-                report.add_error(page_title, 'export_failed', 'Failed to export page')
+                report.pages_failed += 1
+                report.add_error('', page_title, 'export_failed', 'Failed to export page')
 
             # Save checkpoint periodically
             if not args.dry_run and idx % config.checkpoint_frequency == 0:
@@ -388,7 +395,7 @@ def main():
         sys.exit(130)
 
     # Transform content if requested
-    if args.transform and not args.skip_transform and report.pages_exported_success > 0:
+    if args.transform and not args.skip_transform and report.pages_succeeded > 0:
         logger.info("")
         logger.info("=" * 80)
         logger.info("CONTENT TRANSFORMATION PHASE")
@@ -462,7 +469,7 @@ def main():
         logger.info("Final checkpoint saved")
 
     # Delete checkpoint if export is complete
-    if not args.dry_run and report.pages_exported_success == len(pages):
+    if not args.dry_run and report.pages_succeeded == len(pages):
         storage.delete_checkpoint()
         logger.info("Export complete, checkpoint deleted")
 
@@ -471,17 +478,17 @@ def main():
     logger.info("=" * 80)
     logger.info("EXPORT SUMMARY")
     logger.info("=" * 80)
-    logger.info(f"Pages exported: {report.pages_exported_success}")
-    logger.info(f"Pages failed: {report.pages_exported_failed}")
+    logger.info(f"Pages exported: {report.pages_succeeded}")
+    logger.info(f"Pages failed: {report.pages_failed}")
     logger.info(f"Duration: {report.duration_seconds():.1f} seconds")
 
     if report.errors:
         logger.warning(f"Errors encountered: {len(report.errors)}")
-        logger.info(f"See {config.export_dir / 'errors.csv'} for details")
+        logger.info(f"See {config.export_dir_path / 'errors.csv'} for details")
 
     # Save report
     if not args.dry_run:
-        report_path = config.export_dir / 'export_report.json'
+        report_path = config.export_dir_path / 'export_report.json'
         with open(report_path, 'w') as f:
             f.write(report.to_json())
         logger.info(f"Report saved to: {report_path}")
@@ -489,7 +496,7 @@ def main():
     logger.info("=" * 80)
 
     # Exit with appropriate code
-    if report.pages_exported_failed > 0:
+    if report.pages_failed > 0:
         sys.exit(1)
     else:
         sys.exit(0)

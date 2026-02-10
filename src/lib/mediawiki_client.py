@@ -20,7 +20,7 @@ class MediaWikiClient:
     support for MediaWiki 1.13.5+.
     """
 
-    def __init__(self, url: str, username: str = '', password: str = '', timeout_seconds: int = 300):
+    def __init__(self, url: str, username: str = '', password: str = '', timeout_seconds: int = 300, verify_ssl: bool = True):
         """Initialize MediaWiki client.
 
         Args:
@@ -28,10 +28,12 @@ class MediaWikiClient:
             username: Bot or admin username (optional, for private wikis)
             password: User password (optional, for private wikis)
             timeout_seconds: Authentication timeout threshold (default: 300 = 5 minutes)
+            verify_ssl: Verify SSL certificates (default: True, set to False for self-signed certs)
         """
         self.url = url
         self.username = username
         self.password = password
+        self.verify_ssl = verify_ssl
         self.auth_manager = MediaWikiAuthManager(timeout_seconds)
         self.site: Optional[mwclient.Site] = None
         self.logger = setup_logger(__name__)
@@ -51,13 +53,59 @@ class MediaWikiClient:
         """
         try:
             self.logger.info(f"Connecting to MediaWiki at {self.url}")
+            
+            # Prepare connection options for SSL if needed
+            ssl_adapter = None
+            connection_options = {}
+            if not self.verify_ssl:
+                self.logger.warning("SSL certificate verification is DISABLED")
+                # Disable SSL warnings
+                import urllib3
+                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                
+                import ssl
+                from requests.adapters import HTTPAdapter
+                from urllib3.util.ssl_ import create_urllib3_context
+                
+                # Create custom SSL adapter that allows legacy TLS and disables verification
+                class LegacySSLAdapter(HTTPAdapter):
+                    def init_poolmanager(self, *args, **kwargs):
+                        # Create a very permissive SSL context
+                        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                        context.check_hostname = False
+                        context.verify_mode = ssl.CERT_NONE
+                        # Set very permissive ciphers including weak/legacy ones
+                        context.set_ciphers('DEFAULT:@SECLEVEL=0')
+                        kwargs['ssl_context'] = context
+                        return super().init_poolmanager(*args, **kwargs)
+                
+                ssl_adapter = LegacySSLAdapter()
+                # Pass verify=False to disable SSL verification in requests
+                connection_options['verify'] = False
 
-            # Create site connection
+            # Create site connection without initializing (do_init=False)
             self.site = mwclient.Site(
                 self.host,
                 path=self.path,
-                scheme=self.scheme
+                scheme=self.scheme,
+                connection_options=connection_options if connection_options else None,
+                do_init=False,  # Don't connect yet
+                force_login=False  # Don't force version check
             )
+            
+            # If we have a custom SSL adapter, mount it before initializing
+            if ssl_adapter:
+                self.site.connection.mount('https://', ssl_adapter)
+            
+            # Now initialize the connection (may fail on old MediaWiki versions)
+            try:
+                self.site.site_init()
+            except mwclient.errors.MediaWikiVersionError as e:
+                # Handle old MediaWiki versions (< 1.16)
+                self.logger.warning(f"MediaWiki version check failed: {e}")
+                self.logger.warning("Attempting to connect anyway (legacy version support)")
+                # Manually set version to bypass check
+                self.site.initialized = True
 
             # Login with credentials if provided
             if self.username and self.password:
@@ -144,9 +192,14 @@ class MediaWikiClient:
         try:
             page = self.site.pages[page_title]
 
-            if not page.exists:
-                self.logger.warning(f"Page does not exist: {page_title}")
-                return None
+            # Check if page exists (may not work on old MediaWiki versions)
+            try:
+                if not page.exists:
+                    self.logger.warning(f"Page does not exist: {page_title}")
+                    return None
+            except (AttributeError, TypeError):
+                # page.exists may not work on old MediaWiki - try to get text instead
+                pass
 
             # Get page text (wikitext)
             text = page.text()
@@ -183,7 +236,9 @@ class MediaWikiClient:
             return wiki_page
 
         except Exception as e:
-            self.logger.error(f"Error fetching page '{page_title}': {e}")
+            self.logger.error(f"Error fetching page '{page_title}': {type(e).__name__}: {str(e)}")
+            import traceback
+            self.logger.debug(traceback.format_exc())
             return None
 
     def get_page_links(self, page_title: str) -> List[str]:

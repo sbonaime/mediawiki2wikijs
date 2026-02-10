@@ -41,6 +41,7 @@ class Config:
         self.checkpoint_frequency = int(self._get_optional('CHECKPOINT_FREQUENCY', '10'))
         self.max_link_depth = int(self._get_optional('MAX_LINK_DEPTH', '-1'))
         self.log_level = self._get_optional('LOG_LEVEL', 'INFO')
+        self.verify_ssl = self._get_optional('VERIFY_SSL', 'true').lower() in ('true', '1', 'yes')
 
         # Validate export directory path
         self.export_dir_path = Path(self.export_dir)
@@ -108,7 +109,8 @@ class Config:
             'export_dir': self.export_dir,
             'checkpoint_frequency': self.checkpoint_frequency,
             'max_link_depth': self.max_link_depth,
-            'log_level': self.log_level
+            'log_level': self.log_level,
+            'verify_ssl': self.verify_ssl
         }
 
 

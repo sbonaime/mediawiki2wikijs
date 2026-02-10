@@ -28,18 +28,12 @@ This tool migrates MediaWiki sites to Wiki.js, preserving content, structure, an
    cd mediawiki2wikijs
    ```
 
-2. **Create virtual environment**:
+2. **Install dependencies with uv**:
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
+   uv sync
    ```
 
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Set up test environment**:
+3. **Set up test environment**:
    ```bash
    cp .env.example .env
    # Edit .env with test MediaWiki/Wiki.js credentials
@@ -111,13 +105,13 @@ def transform_content(content: str, options: Optional[dict] = None) -> str:
 
 ```bash
 # Run all tests
-pytest tests/
+uv run pytest tests/
 
 # Run specific test file
-pytest tests/unit/test_content_transformer.py
+uv run pytest tests/unit/test_content_transformer.py
 
 # Run with coverage
-pytest --cov=src tests/
+uv run pytest --cov=src tests/
 ```
 
 ### Writing Tests
@@ -289,7 +283,7 @@ specs/001-mediawiki-wikijs-migration/
 ### PR Checklist
 
 - [ ] Code follows project style guidelines
-- [ ] Tests added/updated and passing
+- [ ] Tests added/updated and passing (`uv run pytest tests/`)
 - [ ] Documentation updated
 - [ ] No breaking changes (or documented if necessary)
 - [ ] Commit messages follow guidelines

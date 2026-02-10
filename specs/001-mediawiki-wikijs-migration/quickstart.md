@@ -49,17 +49,10 @@ git clone <repository-url>
 cd mediawiki2wikijs
 ```
 
-### 2. Create Virtual Environment
+### 2. Install Python Dependencies with uv
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-### 3. Install Python Dependencies
-
-```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 **Dependencies installed**:
@@ -69,11 +62,11 @@ pip install -r requirements.txt
 - `pypandoc>=1.11` - Pandoc wrapper
 - `python-dotenv>=1.0.0` - Environment variable management
 
-### 4. Verify Installation
+### 3. Verify Installation
 
 ```bash
-python export_mediawiki.py --version
-python import_wikijs.py --version
+uv run python export_mediawiki.py --version
+uv run python import_wikijs.py --version
 ```
 
 ---
@@ -139,7 +132,7 @@ LOG_LEVEL=INFO
 Export all pages, images, and metadata from MediaWiki:
 
 ```bash
-python export_mediawiki.py
+uv run python export_mediawiki.py
 ```
 
 **What happens**:
@@ -175,7 +168,7 @@ export_data/
 Import exported content to Wiki.js:
 
 ```bash
-python import_wikijs.py --source ./export_data
+uv run python import_wikijs.py --source ./export_data
 ```
 
 **What happens**:
@@ -197,10 +190,10 @@ Preview migration without making changes:
 
 ```bash
 # Export (test connection and list pages only)
-python export_mediawiki.py --dry-run
+uv run python export_mediawiki.py --dry-run
 
 # Import (validate data without creating pages)
-python import_wikijs.py --source ./export_data --dry-run
+uv run python import_wikijs.py --source ./export_data --dry-run
 ```
 
 ### Limit Link Depth
@@ -208,7 +201,7 @@ python import_wikijs.py --source ./export_data --dry-run
 Process only pages up to N links away from start page:
 
 ```bash
-python export_mediawiki.py --link-depth 2
+uv run python export_mediawiki.py --link-depth 2
 ```
 
 **Examples**:
@@ -222,10 +215,10 @@ If migration is interrupted, resume from last checkpoint:
 
 ```bash
 # Export (automatically detects .checkpoint file)
-python export_mediawiki.py --resume
+uv run python export_mediawiki.py --resume
 
 # Import (automatically detects .checkpoint file)
-python import_wikijs.py --source ./export_data --resume
+uv run python import_wikijs.py --source ./export_data --resume
 ```
 
 ### Filter by Namespace
@@ -234,10 +227,10 @@ Export only specific MediaWiki namespaces:
 
 ```bash
 # Main namespace only (0)
-python export_mediawiki.py --namespaces 0
+uv run python export_mediawiki.py --namespaces 0
 
 # Main and User namespaces (0, 2)
-python export_mediawiki.py --namespaces 0,2
+uv run python export_mediawiki.py --namespaces 0,2
 ```
 
 **Common namespace IDs**:
@@ -254,8 +247,8 @@ python export_mediawiki.py --namespaces 0,2
 Enable detailed debug output:
 
 ```bash
-python export_mediawiki.py --verbose
-python import_wikijs.py --source ./export_data --verbose
+uv run python export_mediawiki.py --verbose
+uv run python import_wikijs.py --source ./export_data --verbose
 ```
 
 ---
@@ -267,10 +260,10 @@ python import_wikijs.py --source ./export_data --verbose
 Specify output location:
 
 ```bash
-python export_mediawiki.py --output /path/to/export
+uv run python export_mediawiki.py --output /path/to/export
 
 # Import from custom location
-python import_wikijs.py --source /path/to/export
+uv run python import_wikijs.py --source /path/to/export
 ```
 
 ### Skip Existing Pages
@@ -278,7 +271,7 @@ python import_wikijs.py --source /path/to/export
 Skip pages that already exist in Wiki.js (no overwrite):
 
 ```bash
-python import_wikijs.py --source ./export_data --skip-existing
+uv run python import_wikijs.py --source ./export_data --skip-existing
 ```
 
 ### Force Overwrite
@@ -286,7 +279,7 @@ python import_wikijs.py --source ./export_data --skip-existing
 Overwrite existing pages in Wiki.js:
 
 ```bash
-python import_wikijs.py --source ./export_data --force
+uv run python import_wikijs.py --source ./export_data --force
 ```
 
 ### Export Single Page
@@ -294,7 +287,7 @@ python import_wikijs.py --source ./export_data --force
 Export only one page and its dependencies:
 
 ```bash
-python export_mediawiki.py --start-page "Main Page"
+uv run python export_mediawiki.py --start-page "Main Page"
 ```
 
 ### Custom Checkpoint Frequency
@@ -303,10 +296,10 @@ Save progress more/less frequently:
 
 ```bash
 # Save every 5 pages (more frequent)
-python export_mediawiki.py --checkpoint-frequency 5
+uv run python export_mediawiki.py --checkpoint-frequency 5
 
 # Save every 50 pages (less frequent)
-python export_mediawiki.py --checkpoint-frequency 50
+uv run python export_mediawiki.py --checkpoint-frequency 50
 ```
 
 ---
@@ -386,7 +379,7 @@ If 403 Forbidden, bot user may need `read` permissions on File namespace.
 
 **Solution**: Reduce request rate by adding delays:
 ```bash
-python export_mediawiki.py --delay 1.0  # 1 second delay between requests
+uv run python export_mediawiki.py --delay 1.0  # 1 second delay between requests
 ```
 
 ### Page Already Exists
@@ -395,7 +388,7 @@ python export_mediawiki.py --delay 1.0  # 1 second delay between requests
 
 **Solution**: Use `--skip-existing` flag or `--force` to overwrite:
 ```bash
-python import_wikijs.py --source ./export_data --skip-existing
+uv run python import_wikijs.py --source ./export_data --skip-existing
 ```
 
 ### Link Conversion Errors
@@ -411,7 +404,7 @@ python import_wikijs.py --source ./export_data --skip-existing
 **Solution**: Delete `.checkpoint` file and restart:
 ```bash
 rm export_data/.checkpoint
-python export_mediawiki.py
+uv run python export_mediawiki.py
 ```
 
 ---
@@ -444,9 +437,7 @@ python export_mediawiki.py
 ```bash
 # Install dependencies
 brew install pandoc  # macOS
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+uv sync
 
 # Configure credentials
 cp .env.example .env
@@ -457,17 +448,17 @@ nano .env  # Fill in MEDIAWIKI_URL, credentials, WIKIJS_API_KEY
 
 ```bash
 # Test MediaWiki connection
-python export_mediawiki.py --dry-run
+uv run python export_mediawiki.py --dry-run
 
 # Test Wiki.js connection
-python import_wikijs.py --source ./export_data --dry-run
+uv run python import_wikijs.py --source ./export_data --dry-run
 ```
 
 ### 3. Export Main Namespace
 
 ```bash
 # Export only main articles
-python export_mediawiki.py --namespaces 0 --verbose
+uv run python export_mediawiki.py --namespaces 0 --verbose
 ```
 
 ### 4. Review Export
@@ -485,7 +476,7 @@ cat export_data/export_errors.csv
 
 ```bash
 # Import with skip-existing safety
-python import_wikijs.py --source ./export_data --skip-existing --verbose
+uv run python import_wikijs.py --source ./export_data --skip-existing --verbose
 ```
 
 ### 6. Verify Migration

@@ -57,18 +57,12 @@ sudo apt-get install pandoc
    cd mediawiki2wikijs
    ```
 
-2. **Create virtual environment**:
+2. **Install dependencies with uv**:
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   uv sync
    ```
 
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Configure settings**:
+3. **Configure settings**:
    ```bash
    cp .env.example .env
    # Edit .env with your MediaWiki URL and Wiki.js credentials
@@ -80,7 +74,7 @@ sudo apt-get install pandoc
 ### 1. Export from MediaWiki
 
 ```bash
-python src/export_mediawiki.py
+uv run python src/export_mediawiki.py
 ```
 
 This will:
@@ -93,7 +87,7 @@ This will:
 ### 2. Import to Wiki.js
 
 ```bash
-python src/import_wikijs.py --source ./export_output
+uv run python src/import_wikijs.py --source ./export_output
 ```
 
 This will:
@@ -138,35 +132,35 @@ LOG_LEVEL=INFO
 
 ```bash
 # Dry run (preview without downloading)
-python src/export_mediawiki.py --dry-run
+uv run python src/export_mediawiki.py --dry-run
 
 # Limit link depth
-python src/export_mediawiki.py --link-depth 2
+uv run python src/export_mediawiki.py --link-depth 2
 
 # Resume interrupted export
-python src/export_mediawiki.py --resume
+uv run python src/export_mediawiki.py --resume
 
 # Export specific namespaces
-python src/export_mediawiki.py --namespaces 0,2
+uv run python src/export_mediawiki.py --namespaces 0,2
 
 # Verbose logging
-python src/export_mediawiki.py --verbose
+uv run python src/export_mediawiki.py --verbose
 ```
 
 ### Import Options
 
 ```bash
 # Dry run (preview without creating pages)
-python src/import_wikijs.py --source ./export_output --dry-run
+uv run python src/import_wikijs.py --source ./export_output --dry-run
 
 # Skip existing pages
-python src/import_wikijs.py --source ./export_output --skip-existing
+uv run python src/import_wikijs.py --source ./export_output --skip-existing
 
 # Force overwrite existing pages
-python src/import_wikijs.py --source ./export_output --force
+uv run python src/import_wikijs.py --source ./export_output --force
 
 # Resume interrupted import
-python src/import_wikijs.py --source ./export_output --resume
+uv run python src/import_wikijs.py --source ./export_output --resume
 ```
 
 ## Documentation
@@ -235,13 +229,13 @@ See [tasks.md](specs/001-mediawiki-wikijs-migration/tasks.md) for planned featur
 
 ```bash
 # Install development dependencies
-pip install -r requirements.txt
+uv sync
 
 # Run tests
-pytest tests/
+uv run pytest tests/
 
 # Run linting
-ruff check src/
+uv run ruff check src/
 ```
 
 ## � Changelog
